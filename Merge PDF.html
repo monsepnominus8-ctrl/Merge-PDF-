@@ -3,80 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Merge PDF - Gratis & Privasi Aman</title>
+  <title>PDF Merge • Professional</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f7f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-    h1 { text-align: center; color: #1e88e5; }
-    .drop-zone {
-      border: 3px dashed #1e88e5;
-      border-radius: 10px;
-      padding: 40px;
-      text-align: center;
-      background: #f8fbff;
-      cursor: pointer;
-      margin: 20px 0;
-    }
-    .drop-zone.dragover { background: #e3f2fd; }
-    ul { list-style: none; padding: 0; }
-    li {
-      background: #f1f3f5;
-      margin: 8px 0;
-      padding: 12px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      cursor: move;
-    }
-    button {
-      background: #1e88e5;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 10px 5px;
-    }
-    button:hover { background: #1565c0; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
-    .info { text-align: center; margin: 15px 0; color: #666; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
+    .dark .glass { background: rgba(15, 23, 42, 0.7); }
+    .drop-zone { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .file-item { transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1); }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>🔗 Merge PDF</h1>
-    <p class="info">Gabungkan beberapa file PDF menjadi satu • Semua diproses di browser Anda</p>
+<body class="bg-slate-950 text-slate-200 min-h-screen">
 
-    <div id="dropZone" class="drop-zone">
-      <p><strong>Drag & drop file PDF di sini</strong><br>atau</p>
-      <button onclick="document.getElementById('fileInput').click()">Pilih File PDF</button>
-      <input type="file" id="fileInput" multiple accept=".pdf" style="display:none">
+  <div class="max-w-3xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">📄</div>
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight">PDF Merge</h1>
+          <p class="text-slate-400 text-sm">Combine • Reorder • Download</p>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">100% Client-side • Private</div>
     </div>
 
-    <h3>Daftar File (Urutkan dengan drag):</h3>
-    <ul id="fileList"></ul>
+    <div class="glass border border-slate-700 rounded-3xl p-8 shadow-2xl">
 
-    <div style="text-align:center">
-      <button id="mergeBtn" onclick="mergePDFs()" disabled>Gabungkan PDF</button>
-      <button onclick="clearAll()">Hapus Semua</button>
+      <!-- Upload Area -->
+      <div id="dropZone" 
+           class="drop-zone border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl p-16 text-center cursor-pointer">
+        <i class="fa-solid fa-cloud-arrow-up text-6xl text-slate-400 mb-6"></i>
+        <p class="text-xl font-medium mb-2">Drop your PDF files here</p>
+        <p class="text-slate-400 mb-6">or</p>
+        <button onclick="document.getElementById('fileInput').click()" 
+                class="bg-blue-600 hover:bg-blue-700 px-8 py-3.5 rounded-2xl font-medium transition-colors flex items-center gap-2 mx-auto">
+          <i class="fa-solid fa-folder-open"></i>
+          Browse Files
+        </button>
+        <input type="file" id="fileInput" multiple accept=".pdf" class="hidden">
+        <p class="text-xs text-slate-500 mt-6">Supports multiple PDF files • Max size depends on your device</p>
+      </div>
+
+      <!-- File List -->
+      <div class="mt-10">
+        <div class="flex items-center justify-between mb-4 px-1">
+          <h3 class="font-medium text-lg flex items-center gap-2">
+            <i class="fa-solid fa-list"></i> 
+            Selected Files
+          </h3>
+          <span id="fileCount" class="text-sm text-slate-400">0 files</span>
+        </div>
+        
+        <ul id="fileList" class="space-y-3 min-h-[100px]"></ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-4 mt-10">
+        <button id="mergeBtn" 
+                onclick="mergePDFs()" 
+                disabled
+                class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed py-4 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-file-export"></i>
+          Merge PDFs
+        </button>
+        
+        <button onclick="clearAll()" 
+                class="px-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-2xl font-medium transition-colors">
+          Clear All
+        </button>
+      </div>
+
+      <div id="status" class="mt-6 text-center text-sm font-medium min-h-[24px]"></div>
     </div>
 
-    <div id="status" style="margin-top:20px; text-align:center; font-weight:bold;"></div>
+    <!-- Footer -->
+    <div class="text-center mt-12">
+      <p class="text-slate-500 text-sm">
+        Developed by <span class="text-blue-400 font-medium">Aditya Aslami</span>
+      </p>
+      <p class="text-slate-600 text-xs mt-1">Built with privacy in mind • All processing happens in your browser</p>
+    </div>
   </div>
 
   <script>
@@ -86,16 +95,21 @@
     const fileInput = document.getElementById('fileInput');
     const fileListEl = document.getElementById('fileList');
     const mergeBtn = document.getElementById('mergeBtn');
+    const fileCount = document.getElementById('fileCount');
+
+    // Tailwind script already loaded via CDN
 
     // Drag & Drop
     dropZone.addEventListener('dragover', e => {
       e.preventDefault();
-      dropZone.classList.add('dragover');
+      dropZone.classList.add('border-blue-500', 'bg-slate-900/50');
     });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-blue-500', 'bg-slate-900/50');
+    });
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone.classList.remove('dragover');
+      dropZone.classList.remove('border-blue-500', 'bg-slate-900/50');
       handleFiles(e.dataTransfer.files);
     });
 
@@ -106,7 +120,7 @@
         if (file.type === 'application/pdf') {
           files.push(file);
         } else {
-          alert(file.name + " bukan file PDF");
+          alert(`"${file.name}" is not a PDF file`);
         }
       }
       renderFileList();
@@ -114,27 +128,47 @@
 
     function renderFileList() {
       fileListEl.innerHTML = '';
+      fileCount.textContent = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+
       files.forEach((file, index) => {
         const li = document.createElement('li');
+        li.className = `file-item flex items-center gap-4 bg-slate-900 border border-slate-700 hover:border-slate-500 rounded-2xl p-4 group`;
         li.draggable = true;
+        
         li.innerHTML = `
-          <span style="flex:1">📄 ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)</span>
-          <button onclick="removeFile(${index})" style="background:red;padding:5px 10px;font-size:12px;">Hapus</button>
+          <div class="flex-1 flex items-center gap-3">
+            <i class="fa-solid fa-file-pdf text-red-400 text-2xl"></i>
+            <div class="min-w-0">
+              <p class="font-medium text-sm truncate">${file.name}</p>
+              <p class="text-xs text-slate-400">${(file.size / (1024*1024)).toFixed(2)} MB</p>
+            </div>
+          </div>
+          <button onclick="removeFile(${index}); event.stopImmediatePropagation()" 
+                  class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-all p-2">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         `;
-        li.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', index));
+
+        // Drag & Drop reordering
+        li.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', index);
+          li.classList.add('opacity-50');
+        });
+        li.addEventListener('dragend', () => li.classList.remove('opacity-50'));
         li.addEventListener('dragover', e => e.preventDefault());
         li.addEventListener('drop', e => {
           e.preventDefault();
           const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-          const toIndex = index;
-          if (fromIndex !== toIndex) {
-            const [moved] = files.splice(fromIndex, 1);
-            files.splice(toIndex, 0, moved);
+          if (fromIndex !== index) {
+            const [movedFile] = files.splice(fromIndex, 1);
+            files.splice(index, 0, movedFile);
             renderFileList();
           }
         });
+
         fileListEl.appendChild(li);
       });
+
       mergeBtn.disabled = files.length < 2;
     }
 
@@ -144,15 +178,17 @@
     }
 
     function clearAll() {
-      files = [];
-      renderFileList();
+      if (confirm("Clear all files?")) {
+        files = [];
+        renderFileList();
+      }
     }
 
     async function mergePDFs() {
-      if (files.length < 2) return alert("Minimal 2 file PDF diperlukan");
+      if (files.length < 2) return;
 
       const status = document.getElementById('status');
-      status.textContent = 'Sedang menggabungkan... Mohon tunggu';
+      status.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Merging PDFs... Please wait`;
 
       try {
         const mergedPdf = await PDFLib.PDFDocument.create();
@@ -170,16 +206,24 @@
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'merged.pdf';
+        a.download = `merged_${new Date().toISOString().slice(0,10)}.pdf`;
         a.click();
 
         URL.revokeObjectURL(url);
-        status.textContent = '✅ Berhasil! File telah di-download.';
+        status.innerHTML = `<span class="text-green-400">✅ Merge successful! File downloaded.</span>`;
       } catch (err) {
         console.error(err);
-        status.textContent = '❌ Gagal merge PDF. Coba lagi.';
+        status.innerHTML = `<span class="text-red-400">❌ Failed to merge. Please try again.</span>`;
       }
     }
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
   </script>
 </body>
 </html>
