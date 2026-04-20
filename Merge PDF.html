@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merge PDF - Gratis & Privasi Aman</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 { text-align: center; color: #1e88e5; }
+    .drop-zone {
+      border: 3px dashed #1e88e5;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      background: #f8fbff;
+      cursor: pointer;
+      margin: 20px 0;
+    }
+    .drop-zone.dragover { background: #e3f2fd; }
+    ul { list-style: none; padding: 0; }
+    li {
+      background: #f1f3f5;
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      cursor: move;
+    }
+    button {
+      background: #1e88e5;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover { background: #1565c0; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .info { text-align: center; margin: 15px 0; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔗 Merge PDF</h1>
+    <p class="info">Gabungkan beberapa file PDF menjadi satu • Semua diproses di browser Anda</p>
+
+    <div id="dropZone" class="drop-zone">
+      <p><strong>Drag & drop file PDF di sini</strong><br>atau</p>
+      <button onclick="document.getElementById('fileInput').click()">Pilih File PDF</button>
+      <input type="file" id="fileInput" multiple accept=".pdf" style="display:none">
+    </div>
+
+    <h3>Daftar File (Urutkan dengan drag):</h3>
+    <ul id="fileList"></ul>
+
+    <div style="text-align:center">
+      <button id="mergeBtn" onclick="mergePDFs()" disabled>Gabungkan PDF</button>
+      <button onclick="clearAll()">Hapus Semua</button>
+    </div>
+
+    <div id="status" style="margin-top:20px; text-align:center; font-weight:bold;"></div>
+  </div>
+
+  <script>
+    let files = [];
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileListEl = document.getElementById('fileList');
+    const mergeBtn = document.getElementById('mergeBtn');
+
+    // Drag & Drop
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    function handleFiles(fileList) {
+      for (let file of fileList) {
+        if (file.type === 'application/pdf') {
+          files.push(file);
+        } else {
+          alert(file.name + " bukan file PDF");
+        }
+      }
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileListEl.innerHTML = '';
+      files.forEach((file, index) => {
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.innerHTML = `
+          <span style="flex:1">📄 ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)</span>
+          <button onclick="removeFile(${index})" style="background:red;padding:5px 10px;font-size:12px;">Hapus</button>
+        `;
+        li.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', index));
+        li.addEventListener('dragover', e => e.preventDefault());
+        li.addEventListener('drop', e => {
+          e.preventDefault();
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          const toIndex = index;
+          if (fromIndex !== toIndex) {
+            const [moved] = files.splice(fromIndex, 1);
+            files.splice(toIndex, 0, moved);
+            renderFileList();
+          }
+        });
+        fileListEl.appendChild(li);
+      });
+      mergeBtn.disabled = files.length < 2;
+    }
+
+    function removeFile(index) {
+      files.splice(index, 1);
+      renderFileList();
+    }
+
+    function clearAll() {
+      files = [];
+      renderFileList();
+    }
+
+    async function mergePDFs() {
+      if (files.length < 2) return alert("Minimal 2 file PDF diperlukan");
+
+      const status = document.getElementById('status');
+      status.textContent = 'Sedang menggabungkan... Mohon tunggu';
+
+      try {
+        const mergedPdf = await PDFLib.PDFDocument.create();
+
+        for (let file of files) {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+          const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
+
+        const pdfBytes = await mergedPdf.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'merged.pdf';
+        a.click();
+
+        URL.revokeObjectURL(url);
+        status.textContent = '✅ Berhasil! File telah di-download.';
+      } catch (err) {
+        console.error(err);
+        status.textContent = '❌ Gagal merge PDF. Coba lagi.';
+      }
+    }
+  </script>
+</body>
+</html>
